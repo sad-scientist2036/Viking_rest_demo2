@@ -1,20 +1,14 @@
 package ru.mephi.vikingdemo.gui;
 
+import ru.mephi.vikingdemo.model.BeardStyle;
+import ru.mephi.vikingdemo.model.HairColor;
 import ru.mephi.vikingdemo.model.Viking;
+import ru.mephi.vikingdemo.model.VikingEntity;
 import ru.mephi.vikingdemo.service.VikingService;
 
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.SwingConstants;
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.Font;
+import javax.swing.*;
+import java.awt.*;
 import java.util.List;
-
 
 public class VikingDesktopFrame extends JFrame {
 
@@ -26,7 +20,7 @@ public class VikingDesktopFrame extends JFrame {
 
         setTitle("Viking Demo");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(new Dimension(1000, 420));
+        setSize(new Dimension(1300, 600));
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(10, 10));
 
@@ -44,22 +38,219 @@ public class VikingDesktopFrame extends JFrame {
         JPanel bottomPanel = new JPanel();
         bottomPanel.add(createButton);
         add(bottomPanel, BorderLayout.SOUTH);
-        
+
+        JPanel topPanel = createTopPanel();
+        add(topPanel, BorderLayout.NORTH);
+
+        JPanel leftPanel = createLeftPanel();
+        add(leftPanel, BorderLayout.WEST);
+
+        JPanel rightPanel = createRightPanel();
+        add(rightPanel, BorderLayout.EAST);
+
         onInit();
+    }
+
+    private JPanel createTopPanel() {
+        JPanel panel = new JPanel(new GridLayout(2, 3, 10, 5));
+        panel.setBorder(BorderFactory.createTitledBorder("1. Поиск викингов по условиям"));
+
+        JButton btnGreater = new JButton("Возраст >");
+        JButton btnLess = new JButton("Возраст <");
+        JButton btnRange = new JButton("Возраст в диапазоне");
+        JButton btnBeardHair = new JButton("Борода + Волосы");
+        JButton btnAxes = new JButton("Количество топоров");
+
+        panel.add(btnGreater);
+        panel.add(btnLess);
+        panel.add(btnRange);
+        panel.add(btnBeardHair);
+        panel.add(btnAxes);
+
+        btnGreater.addActionListener(e -> {
+            String input = JOptionPane.showInputDialog(this, "Введите возраст:", "Старше", JOptionPane.QUESTION_MESSAGE);
+            if (input != null) {
+                try {
+                    int age = Integer.parseInt(input);
+                    List<Viking> result = vikingService.findVikingsByAge(age, ">");
+                    displayResults(result);
+                    JOptionPane.showMessageDialog(this, "Найдено: " + result.size());
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(this, "Ошибка: введите число");
+                }
+            }
+        });
+
+        btnLess.addActionListener(e -> {
+            String input = JOptionPane.showInputDialog(this, "Введите возраст:", "Младше", JOptionPane.QUESTION_MESSAGE);
+            if (input != null) {
+                try {
+                    int age = Integer.parseInt(input);
+                    List<Viking> result = vikingService.findVikingsByAge(age, "<");
+                    displayResults(result);
+                    JOptionPane.showMessageDialog(this, "Найдено: " + result.size());
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(this, "Ошибка: введите число");
+                }
+            }
+        });
+
+        btnRange.addActionListener(e -> {
+            JPanel rangePanel = new JPanel(new GridLayout(2, 2, 5, 5));
+            JTextField minField = new JTextField();
+            JTextField maxField = new JTextField();
+            rangePanel.add(new JLabel("От:"));
+            rangePanel.add(minField);
+            rangePanel.add(new JLabel("До:"));
+            rangePanel.add(maxField);
+
+            int result = JOptionPane.showConfirmDialog(this, rangePanel, "Диапазон возраста", JOptionPane.OK_CANCEL_OPTION);
+            if (result == JOptionPane.OK_OPTION) {
+                try {
+                    int min = Integer.parseInt(minField.getText());
+                    int max = Integer.parseInt(maxField.getText());
+                    List<Viking> found = vikingService.findVikingsByAgeRange(min, max, true);
+                    displayResults(found);
+                    JOptionPane.showMessageDialog(this, "Найдено: " + found.size());
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(this, "Ошибка: введите числа");
+                }
+            }
+        });
+
+        btnBeardHair.addActionListener(e -> {
+            JPanel bhPanel = new JPanel(new GridLayout(2, 2, 5, 5));
+            JComboBox<BeardStyle> beardBox = new JComboBox<>(BeardStyle.values());
+            JComboBox<HairColor> hairBox = new JComboBox<>(HairColor.values());
+            bhPanel.add(new JLabel("Борода:"));
+            bhPanel.add(beardBox);
+            bhPanel.add(new JLabel("Волосы:"));
+            bhPanel.add(hairBox);
+
+            int result = JOptionPane.showConfirmDialog(this, bhPanel, "Борода и цвет волос", JOptionPane.OK_CANCEL_OPTION);
+            if (result == JOptionPane.OK_OPTION) {
+                BeardStyle beard = (BeardStyle) beardBox.getSelectedItem();
+                HairColor hair = (HairColor) hairBox.getSelectedItem();
+                List<Viking> found = vikingService.findVikingsByBeardAndHair(beard, hair);
+                displayResults(found);
+                JOptionPane.showMessageDialog(this, "Найдено: " + found.size());
+            }
+        });
+
+        btnAxes.addActionListener(e -> {
+            String[] options = {"1 топор", "2 топора"};
+            int choice = JOptionPane.showOptionDialog(this, "Выберите количество топоров:", "Топоры",
+                    JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+            if (choice == 0) {
+                List<Viking> found = vikingService.findVikingsByAxeCount(1);
+                displayResults(found);
+                JOptionPane.showMessageDialog(this, "Найдено: " + found.size());
+            } else if (choice == 1) {
+                List<Viking> found = vikingService.findVikingsByAxeCount(2);
+                displayResults(found);
+                JOptionPane.showMessageDialog(this, "Найдено: " + found.size());
+            }
+        });
+
+        return panel;
+    }
+
+    private JPanel createLeftPanel() {
+        JPanel panel = new JPanel(new GridLayout(3, 1, 10, 10));
+        panel.setBorder(BorderFactory.createTitledBorder("2. Информация"));
+        panel.setPreferredSize(new Dimension(200, 0));
+
+        JButton btnTall = new JButton("Случайный >180см");
+        JButton btnLegendary = new JButton("Легендарное снаряжение");
+        JButton btnRedBearded = new JButton("Рыжебородые");
+
+        panel.add(btnTall);
+        panel.add(btnLegendary);
+        panel.add(btnRedBearded);
+
+        btnTall.addActionListener(e -> {
+            var result = vikingService.getRandomTallViking();
+            displayResults(result.map(List::of).orElse(List.of()));
+            JOptionPane.showMessageDialog(this, result.isPresent() ? "Показан случайный викинг" : "Не найден");
+        });
+
+        btnLegendary.addActionListener(e -> {
+            List<Viking> result = vikingService.getVikingsWithLegendaryGear();
+            displayResults(result);
+            JOptionPane.showMessageDialog(this, "Найдено: " + result.size());
+        });
+
+        btnRedBearded.addActionListener(e -> {
+            List<Viking> result = vikingService.getRedBeardedVikingsSortedByAge();
+            displayResults(result);
+            JOptionPane.showMessageDialog(this, "Найдено (сортировка по возрасту): " + result.size());
+        });
+
+        return panel;
+    }
+
+    private JPanel createRightPanel() {
+        JPanel panel = new JPanel(new GridLayout(2, 1, 10, 10));
+        panel.setBorder(BorderFactory.createTitledBorder("3. Операции с ID"));
+        panel.setPreferredSize(new Dimension(180, 0));
+
+        JButton btnMaxId = new JButton("Max ID");
+        JButton btnEvenIds = new JButton("Четные ID");
+
+        panel.add(btnMaxId);
+        panel.add(btnEvenIds);
+
+        btnMaxId.addActionListener(e -> {
+            var entity = vikingService.findVikingEntityWithMaxId();
+            if (entity.isPresent()) {
+                List<Integer> ids = List.of(entity.get().id());
+                List<Viking> result = vikingService.findVikingsByEntityIds(ids);
+                displayResults(result);
+                if (result.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Викинг с ID=" + entity.get().id() + " найден в БД, но не сопоставлен");
+                } else {
+                    JOptionPane.showMessageDialog(this, "Показан викинг с max ID=" + entity.get().id());
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Нет записей");
+            }
+        });
+
+        btnEvenIds.addActionListener(e -> {
+            List<VikingEntity> entities = vikingService.findVikingEntitiesWithEvenIds();
+            if (entities.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Нет викингов с четными ID");
+                tableModel.clearAll();
+            } else {
+                List<Integer> evenIds = entities.stream()
+                        .map(VikingEntity::id)
+                        .collect(java.util.stream.Collectors.toList());
+                List<Viking> result = vikingService.findVikingsByEntityIds(evenIds);
+                displayResults(result);
+                JOptionPane.showMessageDialog(this, "Найдено в БД: " + entities.size() + ", отображено в таблице: " + result.size());
+            }
+        });
+
+        return panel;
+    }
+
+    private void displayResults(List<Viking> vikings) {
+        tableModel.clearAll();
+        vikings.forEach(tableModel::addViking);
     }
 
     private void onCreateViking() {
         Viking viking = vikingService.createRandomViking();
         tableModel.addViking(viking);
     }
-    
-    public void addNewViking(Viking viking){
+
+    public void addNewViking(Viking viking) {
         tableModel.addViking(viking);
     }
 
     private void onInit() {
         List<Viking> all = vikingService.findAll();
-        if (!all.isEmpty()){
+        if (!all.isEmpty()) {
             for (Viking viking : all) {
                 tableModel.addViking(viking);
             }

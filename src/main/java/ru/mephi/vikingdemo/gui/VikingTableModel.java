@@ -53,4 +53,8 @@ public class VikingTableModel extends AbstractTableModel {
                 .map(item -> item.name() + " [" + item.quality() + "]")
                 .collect(Collectors.joining(", "));
     }
+    public void clearAll() {
+        data.clear();
+        fireTableDataChanged();
+    }
 }

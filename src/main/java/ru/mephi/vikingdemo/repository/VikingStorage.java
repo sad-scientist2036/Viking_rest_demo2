@@ -42,6 +42,9 @@ public class VikingStorage {
 
         return viking;
     }
+    public List<VikingEntity> findAllEntities() {
+        return vikingRepository.findAll();
+    }
 
     public List<Viking> findAll() {
         List<VikingEntity> vikingEntities = vikingRepository.findAll();
