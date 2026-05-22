@@ -48,7 +48,42 @@ public class VikingLambdaService {
                         .count() == axeCount)
                 .count();
     }
+    public List<Viking> findVikingsByAge(int age, String operator) {
+        return vikingStorage.findAll().stream()
+                .filter(v -> operator.equals(">") ? v.age() > age : v.age() < age)
+                .collect(Collectors.toList());
+    }
 
+    public List<Viking> findVikingsByAgeRange(int min, int max, boolean inside) {
+        return vikingStorage.findAll().stream()
+                .filter(v -> inside ? (v.age() >= min && v.age() <= max) : (v.age() < min || v.age() > max))
+                .collect(Collectors.toList());
+    }
+
+    public List<Viking> findVikingsByBeardAndHair(BeardStyle beard, HairColor hair) {
+        return vikingStorage.findAll().stream()
+                .filter(v -> v.beardStyle() == beard && v.hairColor() == hair)
+                .collect(Collectors.toList());
+    }
+
+    public List<Viking> findVikingsByAxeCount(int axeCount) {
+        if (axeCount != 1 && axeCount != 2) {
+            throw new IllegalArgumentException("Количество топоров должно быть 1 или 2");
+        }
+        return vikingStorage.findAll().stream()
+                .filter(v -> v.equipment().stream()
+                        .filter(e -> e.name().toLowerCase().contains("axe"))
+                        .count() == axeCount)
+                .collect(Collectors.toList());
+    }
+
+    public List<Viking> findVikingsWithOneAxe() {
+        return findVikingsByAxeCount(1);
+    }
+
+    public List<Viking> findVikingsWithTwoAxes() {
+        return findVikingsByAxeCount(2);
+    }
     public Optional<Viking> getRandomTallViking() {
         List<Viking> tallVikings = vikingStorage.findAll().stream()
                 .filter(v -> v.heightCm() > 180)
@@ -76,7 +111,7 @@ public class VikingLambdaService {
                 .collect(Collectors.toList());
     }
 
-    public Optional<Integer> findMaxIdFromArray(Integer[] ids) {
+    public Optional<Integer> findMaxIdInArray(Integer[] ids) {
         if (ids == null || ids.length == 0) {
             return Optional.empty();
         }
@@ -84,7 +119,7 @@ public class VikingLambdaService {
                 .max(Integer::compareTo);
     }
 
-    public Integer[] findEvenIdsFromArray(Integer[] ids) {
+    public Integer[] findEvenIdsInArray(Integer[] ids) {
         if (ids == null || ids.length == 0) {
             return new Integer[0];
         }
@@ -93,33 +128,42 @@ public class VikingLambdaService {
                 .toArray(Integer[]::new);
     }
 
-    public Optional<Integer> findMaxIdFromIntArray(int[] ids) {
-        if (ids == null || ids.length == 0) {
-            return Optional.empty();
-        }
-        return Arrays.stream(ids)
-                .boxed()
-                .max(Integer::compareTo);
-    }
-
-    public int[] findEvenIdsFromIntArray(int[] ids) {
-        if (ids == null || ids.length == 0) {
-            return new int[0];
-        }
-        return Arrays.stream(ids)
-                .filter(id -> id % 2 == 0)
-                .toArray();
-    }
-
-    public Integer[] getAllIdsAsArray() {
+     public Integer[] getAllIdsFromDb() {
         return vikingStorage.findAllEntities().stream()
                 .map(VikingEntity::id)
                 .toArray(Integer[]::new);
     }
+    public Optional<Integer> findMaxIdInDb() {
+        Integer[] ids = getAllIdsFromDb();
+        return findMaxIdInArray(ids);
+    }
+    public Integer[] findEvenIdsInDb() {
+        Integer[] ids = getAllIdsFromDb();
+        return findEvenIdsInArray(ids);
+    }
 
-    public int[] getAllIdsAsIntArray() {
-        return vikingStorage.findAllEntities().stream()
-                .mapToInt(VikingEntity::id)
-                .toArray();
+    public List<Viking> generateMassVikings(int count) {
+        if (count <= 0) {
+            throw new IllegalArgumentException("Количество должно быть положительным");
+        }
+        if (count > 1000) {
+            throw new IllegalArgumentException("Количество не должно превышать 1000");
+        }
+        return java.util.stream.IntStream.range(0, count)
+                .mapToObj(i -> vikingFactory.createRandomViking())
+                .collect(Collectors.toList());
+    }
+
+    public void addMassVikings(List<Viking> vikings) {
+        if (vikings == null || vikings.isEmpty()) {
+            return;
+        }
+        vikings.forEach(v -> vikingStorage.save(v));
+    }
+
+    public List<Viking> generateAndSaveMassVikings(int count) {
+        List<Viking> newVikings = generateMassVikings(count);
+        addMassVikings(newVikings);
+        return newVikings;
     }
 }

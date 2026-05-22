@@ -3,13 +3,14 @@ package ru.mephi.vikingdemo.gui;
 import ru.mephi.vikingdemo.model.BeardStyle;
 import ru.mephi.vikingdemo.model.HairColor;
 import ru.mephi.vikingdemo.model.Viking;
-import ru.mephi.vikingdemo.model.VikingEntity;
 import ru.mephi.vikingdemo.service.VikingLambdaService;
 import ru.mephi.vikingdemo.service.VikingService;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 public class VikingDesktopFrame extends JFrame {
 
@@ -20,7 +21,6 @@ public class VikingDesktopFrame extends JFrame {
     public VikingDesktopFrame(VikingService vikingService, VikingLambdaService lambdaService) {
         this.vikingService = vikingService;
         this.lambdaService = lambdaService;
-
 
         setTitle("Viking Demo");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -193,10 +193,11 @@ public class VikingDesktopFrame extends JFrame {
         return panel;
     }
 
+    // ==================== ПУНКТ 3: Работа с массивом ID ====================
     private JPanel createRightPanel() {
         JPanel panel = new JPanel(new GridLayout(2, 1, 10, 10));
-        panel.setBorder(BorderFactory.createTitledBorder("3. Операции с ID"));
-        panel.setPreferredSize(new Dimension(180, 0));
+        panel.setBorder(BorderFactory.createTitledBorder("3. Операции с массивом ID"));
+        panel.setPreferredSize(new Dimension(200, 0));
 
         JButton btnMaxId = new JButton("Max ID");
         JButton btnEvenIds = new JButton("Четные ID");
@@ -204,35 +205,35 @@ public class VikingDesktopFrame extends JFrame {
         panel.add(btnMaxId);
         panel.add(btnEvenIds);
 
+        // Max ID - работа с массивом
         btnMaxId.addActionListener(e -> {
-            var entity = lambdaService.findVikingEntityWithMaxId();
-            if (entity.isPresent()) {
-                List<Integer> ids = List.of(entity.get().id());
-                List<Viking> result = lambdaService.findVikingsByEntityIds(ids);
-                displayResults(result);
-                if (result.isEmpty()) {
-                    JOptionPane.showMessageDialog(this, "Викинг с ID=" + entity.get().id() + " найден в БД, но не сопоставлен");
-                } else {
-                    JOptionPane.showMessageDialog(this, "Показан викинг с max ID=" + entity.get().id());
-                }
-            } else {
-                JOptionPane.showMessageDialog(this, "Нет записей");
+            Integer[] allIds = lambdaService.getAllIdsFromDb();
+            if (allIds.length == 0) {
+                JOptionPane.showMessageDialog(this, "Нет ID в базе данных");
+                return;
             }
+
+            Optional<Integer> maxId = lambdaService.findMaxIdInArray(allIds);
+            String message = "=== Операции с массивом ID ===\n\n" +
+                    "Массив всех ID: " + Arrays.toString(allIds) + "\n\n" +
+                    "Максимальный ID: " + maxId.orElse(-1);
+            JOptionPane.showMessageDialog(this, message, "Max ID", JOptionPane.INFORMATION_MESSAGE);
         });
 
+        // Четные ID - работа с массивом
         btnEvenIds.addActionListener(e -> {
-            List<VikingEntity> entities = lambdaService.findVikingEntitiesWithEvenIds();
-            if (entities.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Нет викингов с четными ID");
-                tableModel.clearAll();
-            } else {
-                List<Integer> evenIds = entities.stream()
-                        .map(VikingEntity::id)
-                        .collect(java.util.stream.Collectors.toList());
-                List<Viking> result = lambdaService.findVikingsByEntityIds(evenIds);
-                displayResults(result);
-                JOptionPane.showMessageDialog(this, "Найдено в БД: " + entities.size() + ", отображено в таблице: " + result.size());
+            Integer[] allIds = lambdaService.getAllIdsFromDb();
+            if (allIds.length == 0) {
+                JOptionPane.showMessageDialog(this, "Нет ID в базе данных");
+                return;
             }
+
+            Integer[] evenIds = lambdaService.findEvenIdsInArray(allIds);
+            String message = "=== Операции с массивом ID ===\n\n" +
+                    "Массив всех ID: " + Arrays.toString(allIds) + "\n\n" +
+                    "Четные ID: " + Arrays.toString(evenIds) + "\n\n" +
+                    "Количество четных ID: " + evenIds.length;
+            JOptionPane.showMessageDialog(this, message, "Четные ID", JOptionPane.INFORMATION_MESSAGE);
         });
 
         return panel;
