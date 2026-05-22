@@ -11,6 +11,7 @@ import ru.mephi.vikingdemo.model.HairColor;
 import ru.mephi.vikingdemo.model.Viking;
 import ru.mephi.vikingdemo.service.VikingLambdaService;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -64,6 +65,14 @@ public class VikingLambdaController {
             @Parameter(description = "Количество топоров (1 или 2)", example = "2")
             @RequestParam int axeCount) {
         return lambdaService.countVikingsByAxeCount(axeCount);
+    }
+    @GetMapping("/find/axe/one-or-two")
+    @Operation(summary = "Найти всех викингов с 1 или 2 топорами")
+    public List<Viking> findVikingsWithOneOrTwoAxes() {
+        List<Viking> result = new ArrayList<>();
+        result.addAll(lambdaService.findVikingsWithOneAxe());
+        result.addAll(lambdaService.findVikingsWithTwoAxes());
+        return result;
     }
 
     @GetMapping("/find/age")
