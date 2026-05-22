@@ -4,6 +4,7 @@ import ru.mephi.vikingdemo.model.BeardStyle;
 import ru.mephi.vikingdemo.model.HairColor;
 import ru.mephi.vikingdemo.model.Viking;
 import ru.mephi.vikingdemo.model.VikingEntity;
+import ru.mephi.vikingdemo.service.VikingLambdaService;
 import ru.mephi.vikingdemo.service.VikingService;
 
 import javax.swing.*;
@@ -13,10 +14,13 @@ import java.util.List;
 public class VikingDesktopFrame extends JFrame {
 
     private final VikingService vikingService;
+    private final VikingLambdaService lambdaService;
     private final VikingTableModel tableModel = new VikingTableModel();
 
-    public VikingDesktopFrame(VikingService vikingService) {
+    public VikingDesktopFrame(VikingService vikingService, VikingLambdaService lambdaService) {
         this.vikingService = vikingService;
+        this.lambdaService = lambdaService;
+
 
         setTitle("Viking Demo");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -72,7 +76,7 @@ public class VikingDesktopFrame extends JFrame {
             if (input != null) {
                 try {
                     int age = Integer.parseInt(input);
-                    List<Viking> result = vikingService.findVikingsByAge(age, ">");
+                    List<Viking> result = lambdaService.findVikingsByAge(age, ">");
                     displayResults(result);
                     JOptionPane.showMessageDialog(this, "Найдено: " + result.size());
                 } catch (NumberFormatException ex) {
@@ -86,7 +90,7 @@ public class VikingDesktopFrame extends JFrame {
             if (input != null) {
                 try {
                     int age = Integer.parseInt(input);
-                    List<Viking> result = vikingService.findVikingsByAge(age, "<");
+                    List<Viking> result = lambdaService.findVikingsByAge(age, "<");
                     displayResults(result);
                     JOptionPane.showMessageDialog(this, "Найдено: " + result.size());
                 } catch (NumberFormatException ex) {
@@ -109,7 +113,7 @@ public class VikingDesktopFrame extends JFrame {
                 try {
                     int min = Integer.parseInt(minField.getText());
                     int max = Integer.parseInt(maxField.getText());
-                    List<Viking> found = vikingService.findVikingsByAgeRange(min, max, true);
+                    List<Viking> found = lambdaService.findVikingsByAgeRange(min, max, true);
                     displayResults(found);
                     JOptionPane.showMessageDialog(this, "Найдено: " + found.size());
                 } catch (NumberFormatException ex) {
@@ -131,7 +135,7 @@ public class VikingDesktopFrame extends JFrame {
             if (result == JOptionPane.OK_OPTION) {
                 BeardStyle beard = (BeardStyle) beardBox.getSelectedItem();
                 HairColor hair = (HairColor) hairBox.getSelectedItem();
-                List<Viking> found = vikingService.findVikingsByBeardAndHair(beard, hair);
+                List<Viking> found = lambdaService.findVikingsByBeardAndHair(beard, hair);
                 displayResults(found);
                 JOptionPane.showMessageDialog(this, "Найдено: " + found.size());
             }
@@ -142,11 +146,11 @@ public class VikingDesktopFrame extends JFrame {
             int choice = JOptionPane.showOptionDialog(this, "Выберите количество топоров:", "Топоры",
                     JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
             if (choice == 0) {
-                List<Viking> found = vikingService.findVikingsByAxeCount(1);
+                List<Viking> found = lambdaService.findVikingsByAxeCount(1);
                 displayResults(found);
                 JOptionPane.showMessageDialog(this, "Найдено: " + found.size());
             } else if (choice == 1) {
-                List<Viking> found = vikingService.findVikingsByAxeCount(2);
+                List<Viking> found = lambdaService.findVikingsByAxeCount(2);
                 displayResults(found);
                 JOptionPane.showMessageDialog(this, "Найдено: " + found.size());
             }
@@ -169,19 +173,19 @@ public class VikingDesktopFrame extends JFrame {
         panel.add(btnRedBearded);
 
         btnTall.addActionListener(e -> {
-            var result = vikingService.getRandomTallViking();
+            var result = lambdaService.getRandomTallViking();
             displayResults(result.map(List::of).orElse(List.of()));
             JOptionPane.showMessageDialog(this, result.isPresent() ? "Показан случайный викинг" : "Не найден");
         });
 
         btnLegendary.addActionListener(e -> {
-            List<Viking> result = vikingService.getVikingsWithLegendaryGear();
+            List<Viking> result = lambdaService.getVikingsWithLegendaryGear();
             displayResults(result);
             JOptionPane.showMessageDialog(this, "Найдено: " + result.size());
         });
 
         btnRedBearded.addActionListener(e -> {
-            List<Viking> result = vikingService.getRedBeardedVikingsSortedByAge();
+            List<Viking> result = lambdaService.getRedBeardedVikingsSortedByAge();
             displayResults(result);
             JOptionPane.showMessageDialog(this, "Найдено (сортировка по возрасту): " + result.size());
         });
@@ -201,10 +205,10 @@ public class VikingDesktopFrame extends JFrame {
         panel.add(btnEvenIds);
 
         btnMaxId.addActionListener(e -> {
-            var entity = vikingService.findVikingEntityWithMaxId();
+            var entity = lambdaService.findVikingEntityWithMaxId();
             if (entity.isPresent()) {
                 List<Integer> ids = List.of(entity.get().id());
-                List<Viking> result = vikingService.findVikingsByEntityIds(ids);
+                List<Viking> result = lambdaService.findVikingsByEntityIds(ids);
                 displayResults(result);
                 if (result.isEmpty()) {
                     JOptionPane.showMessageDialog(this, "Викинг с ID=" + entity.get().id() + " найден в БД, но не сопоставлен");
@@ -217,7 +221,7 @@ public class VikingDesktopFrame extends JFrame {
         });
 
         btnEvenIds.addActionListener(e -> {
-            List<VikingEntity> entities = vikingService.findVikingEntitiesWithEvenIds();
+            List<VikingEntity> entities = lambdaService.findVikingEntitiesWithEvenIds();
             if (entities.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Нет викингов с четными ID");
                 tableModel.clearAll();
@@ -225,7 +229,7 @@ public class VikingDesktopFrame extends JFrame {
                 List<Integer> evenIds = entities.stream()
                         .map(VikingEntity::id)
                         .collect(java.util.stream.Collectors.toList());
-                List<Viking> result = vikingService.findVikingsByEntityIds(evenIds);
+                List<Viking> result = lambdaService.findVikingsByEntityIds(evenIds);
                 displayResults(result);
                 JOptionPane.showMessageDialog(this, "Найдено в БД: " + entities.size() + ", отображено в таблице: " + result.size());
             }
