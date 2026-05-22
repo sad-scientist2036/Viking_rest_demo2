@@ -22,6 +22,16 @@ public class VikingLambdaService {
         this.vikingFactory = vikingFactory;
         this.vikingStorage = vikingStorage;
     }
+    public List<Viking> findVikingsWithOneOrTwoAxes() {
+        return vikingStorage.findAll().stream()
+                .filter(v -> {
+                    long axeCount = v.equipment().stream()
+                            .filter(e -> e.name().toLowerCase().contains("axe"))
+                            .count();
+                    return axeCount == 1 || axeCount == 2;
+                })
+                .collect(Collectors.toList());
+    }
 
     public long countVikingsByAge(int age, String operator) {
         return vikingStorage.findAll().stream()

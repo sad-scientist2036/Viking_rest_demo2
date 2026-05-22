@@ -24,7 +24,7 @@ public class VikingDesktopFrame extends JFrame {
 
         setTitle("Viking Demo");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(new Dimension(1300, 600));
+        setSize(new Dimension(1300, 650));
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(10, 10));
 
@@ -56,20 +56,24 @@ public class VikingDesktopFrame extends JFrame {
     }
 
     private JPanel createTopPanel() {
-        JPanel panel = new JPanel(new GridLayout(2, 3, 10, 5));
+        JPanel panel = new JPanel(new GridLayout(3, 3, 10, 5));
         panel.setBorder(BorderFactory.createTitledBorder("1. Поиск викингов по условиям"));
 
         JButton btnGreater = new JButton("Возраст >");
         JButton btnLess = new JButton("Возраст <");
         JButton btnRange = new JButton("Возраст в диапазоне");
         JButton btnBeardHair = new JButton("Борода + Волосы");
-        JButton btnAxes = new JButton("Количество топоров");
+        JButton btnOneAxe = new JButton("1 топор");
+        JButton btnTwoAxes = new JButton("2 топора");
+        JButton btnOneOrTwoAxes = new JButton("1 или 2 топора");
 
         panel.add(btnGreater);
         panel.add(btnLess);
         panel.add(btnRange);
         panel.add(btnBeardHair);
-        panel.add(btnAxes);
+        panel.add(btnOneAxe);
+        panel.add(btnTwoAxes);
+        panel.add(btnOneOrTwoAxes);
 
         btnGreater.addActionListener(e -> {
             String input = JOptionPane.showInputDialog(this, "Введите возраст:", "Старше", JOptionPane.QUESTION_MESSAGE);
@@ -141,19 +145,22 @@ public class VikingDesktopFrame extends JFrame {
             }
         });
 
-        btnAxes.addActionListener(e -> {
-            String[] options = {"1 топор", "2 топора"};
-            int choice = JOptionPane.showOptionDialog(this, "Выберите количество топоров:", "Топоры",
-                    JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
-            if (choice == 0) {
-                List<Viking> found = lambdaService.findVikingsByAxeCount(1);
-                displayResults(found);
-                JOptionPane.showMessageDialog(this, "Найдено: " + found.size());
-            } else if (choice == 1) {
-                List<Viking> found = lambdaService.findVikingsByAxeCount(2);
-                displayResults(found);
-                JOptionPane.showMessageDialog(this, "Найдено: " + found.size());
-            }
+        btnOneAxe.addActionListener(e -> {
+            List<Viking> found = lambdaService.findVikingsByAxeCount(1);
+            displayResults(found);
+            JOptionPane.showMessageDialog(this, "Найдено викингов с 1 топором: " + found.size());
+        });
+
+        btnTwoAxes.addActionListener(e -> {
+            List<Viking> found = lambdaService.findVikingsByAxeCount(2);
+            displayResults(found);
+            JOptionPane.showMessageDialog(this, "Найдено викингов с 2 топорами: " + found.size());
+        });
+
+        btnOneOrTwoAxes.addActionListener(e -> {
+            List<Viking> found = lambdaService.findVikingsWithOneOrTwoAxes();
+            displayResults(found);
+            JOptionPane.showMessageDialog(this, "Найдено викингов с 1 или 2 топорами: " + found.size());
         });
 
         return panel;
@@ -193,7 +200,6 @@ public class VikingDesktopFrame extends JFrame {
         return panel;
     }
 
-    // ==================== ПУНКТ 3: Работа с массивом ID ====================
     private JPanel createRightPanel() {
         JPanel panel = new JPanel(new GridLayout(2, 1, 10, 10));
         panel.setBorder(BorderFactory.createTitledBorder("3. Операции с массивом ID"));
@@ -205,7 +211,6 @@ public class VikingDesktopFrame extends JFrame {
         panel.add(btnMaxId);
         panel.add(btnEvenIds);
 
-        // Max ID - работа с массивом
         btnMaxId.addActionListener(e -> {
             Integer[] allIds = lambdaService.getAllIdsFromDb();
             if (allIds.length == 0) {
@@ -220,7 +225,6 @@ public class VikingDesktopFrame extends JFrame {
             JOptionPane.showMessageDialog(this, message, "Max ID", JOptionPane.INFORMATION_MESSAGE);
         });
 
-        // Четные ID - работа с массивом
         btnEvenIds.addActionListener(e -> {
             Integer[] allIds = lambdaService.getAllIdsFromDb();
             if (allIds.length == 0) {

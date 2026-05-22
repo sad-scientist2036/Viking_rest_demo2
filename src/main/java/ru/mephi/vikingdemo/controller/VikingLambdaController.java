@@ -69,10 +69,7 @@ public class VikingLambdaController {
     @GetMapping("/find/axe/one-or-two")
     @Operation(summary = "Найти всех викингов с 1 или 2 топорами")
     public List<Viking> findVikingsWithOneOrTwoAxes() {
-        List<Viking> result = new ArrayList<>();
-        result.addAll(lambdaService.findVikingsWithOneAxe());
-        result.addAll(lambdaService.findVikingsWithTwoAxes());
-        return result;
+        return lambdaService.findVikingsWithOneOrTwoAxes();
     }
 
     @GetMapping("/find/age")
